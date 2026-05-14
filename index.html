@@ -372,6 +372,20 @@
     -webkit-appearance: none;
   }
 
+  /* ===== VALIDATION ===== */
+  .field-error {
+    color: #e53e3e;
+    font-size: 12px;
+    margin-top: 6px;
+    font-weight: 500;
+  }
+  .input-error {
+    border-color: #e53e3e !important;
+    background: #fff5f5 !important;
+  }
+  input.input-error:focus, select.input-error:focus, textarea.input-error:focus {
+    box-shadow: 0 0 0 3px rgba(229,62,62,0.15) !important;
+  }
 </style>
 </head>
 <body>
@@ -688,6 +702,77 @@
   document.getElementById('orderForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbxdcUNlXaEQ0dIbDfy-ZQJhbuowNnPj8aX7c5UPPZBw8lSnwCC_VDS72J2-NYdy15Q/exec';
+
+    // ===== バリデーション =====
+    const activeBtn = document.querySelector('.type-btn.active');
+    const type = activeBtn ? activeBtn.dataset.type : '';
+
+    // エラーリセット
+    document.querySelectorAll('.field-error').forEach(el => el.remove());
+    document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+
+    let hasError = false;
+
+    function showError(el, msg) {
+      el.classList.add('input-error');
+      const err = document.createElement('p');
+      err.className = 'field-error';
+      err.textContent = msg;
+      el.closest('.field').appendChild(err);
+      hasError = true;
+    }
+
+    function checkText(name, msg) {
+      const el = document.querySelector('[name="' + name + '"]');
+      if (el && !el.value.trim()) showError(el, msg);
+    }
+
+    function checkSelect(name, msg) {
+      const el = document.querySelector('[name="' + name + '"]');
+      if (el && !el.value) showError(el, msg);
+    }
+
+    function checkRadioGroup(name, fieldEl, msg) {
+      const checked = document.querySelector('[name="' + name + '"]:checked');
+      if (!checked && fieldEl) {
+        const err = document.createElement('p');
+        err.className = 'field-error';
+        err.textContent = msg;
+        fieldEl.appendChild(err);
+        hasError = true;
+      }
+    }
+
+    // メール共通チェック
+    const emailEl = document.querySelector('[name="emailLocal"]');
+    if (emailEl && !emailEl.value.trim()) showError(emailEl, 'メールアドレスを入力してください');
+
+    if (type === 'shinki') {
+      checkText('nameKanji', '氏名（漢字）を入力してください');
+      checkText('nameKana', '氏名（ふりがな）を入力してください');
+      const designField = document.querySelector('#section-shinki .design-options')?.closest('.field');
+      checkRadioGroup('design_shinki', designField, 'デザインを選択してください');
+      checkSelect('qty_shinki', '枚数を選択してください');
+      const proofField = document.querySelector('[name="proof_shinki"]')?.closest('.field');
+      checkRadioGroup('proof_shinki', proofField, '校正を選択してください');
+    } else if (type === 'repeat') {
+      checkText('repeatName', '氏名を入力してください');
+      const designField = document.querySelector('#section-repeat .design-options')?.closest('.field');
+      checkRadioGroup('design_repeat', designField, 'デザインを選択してください');
+      checkSelect('qty_repeat', '枚数を選択してください');
+    } else if (type === 'kaihen') {
+      checkText('kaihenName', '氏名（漢字）を入力してください');
+      checkText('changeDetail', '変更箇所を入力してください');
+      const designField = document.querySelector('#section-kaihen .design-options')?.closest('.field');
+      checkRadioGroup('design_kaihen', designField, 'デザインを選択してください');
+      checkSelect('qty_kaihen', '枚数を選択してください');
+    }
+
+    if (hasError) {
+      document.querySelector('.field-error').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    // ===== バリデーションここまで =====
 
     const fd = new FormData(this);
     const data = Object.fromEntries(fd.entries());
