@@ -743,9 +743,11 @@
       }
     }
 
-    // メール共通チェック
-    const emailEl = document.querySelector('[name="emailLocal"]');
-    if (emailEl && !emailEl.value.trim()) showError(emailEl, 'メールアドレスを入力してください');
+    // メール共通チェック（リピートはメール欄がないためスキップ）
+    if (type !== 'repeat') {
+      const emailEl = document.querySelector('[name="emailLocal"]');
+      if (emailEl && !emailEl.value.trim()) showError(emailEl, 'メールアドレスを入力してください');
+    }
 
     if (type === 'shinki') {
       checkText('nameKanji', '氏名（漢字）を入力してください');
